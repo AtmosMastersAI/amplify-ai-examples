@@ -1,6 +1,7 @@
 import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
 import { generateImage } from "../functions/generateImage/resource";
 import { getNews } from "../functions/getNews/resource";
+import { invokeFlow } from "../functions/invokeFlow/resource";
 
 const schema = a.schema({
   Story: a
@@ -40,6 +41,14 @@ const schema = a.schema({
             "Used to search a knowledge base of style " +
             "dictionary documentation. Use it to help create story prompts",
           query: a.ref("knowledgeBase"),
+        }),
+        a.ai.dataTool({
+          name: "invokeFlow",
+          description:
+            "Connects to an Amazon Bedrock Flow to generate" +
+            "dynamic content based on user queries. " +
+            "The tool streams responses from Bedrock for optimal performance.",
+          query: a.ref("invokeFlow"),
         }),
       ],
     })
@@ -117,6 +126,19 @@ const schema = a.schema({
     )
     .returns(a.string())
     .authorization((allow) => [allow.authenticated()]),
+  invokeFlow: a
+    .query()
+    .arguments({
+      document: a.string(),
+    })
+    .returns(
+      a.customType({
+        title: a.string(),
+        description: a.string(),
+      })
+    )
+    .authorization((allow) => allow.authenticated())
+    .handler(a.handler.function(invokeFlow)),
 });
 export type Schema = ClientSchema<typeof schema>;
 
